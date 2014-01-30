@@ -3,8 +3,12 @@
  * and open the template in the editor.
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -40,24 +44,13 @@ public class BookResourceClientServlet503 extends HttpServlet {
             throws ServletException, IOException {
         
         final String isbn = request.getParameter("isbn");
-        selectBookByIsbn(isbn);
+        Map<String, String> bookMap = selectBookByIsbn(isbn);
         
         response.setContentType("text/html;charset=UTF-8");
-        PrintWriter out = response.getWriter();
-        try {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet BookResourceClientServlet503</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet BookResourceClientServlet503 at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        } finally {            
-            out.close();
-        }
+        
+        request.setAttribute("bookMap", bookMap);        
+        request.getRequestDispatcher("rest/bookResult503.jsp")
+                .forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -101,20 +94,39 @@ public class BookResourceClientServlet503 extends HttpServlet {
         return "Short description";
     }// </editor-fold>
 
-    private void selectBookByIsbn(final String isbn) throws ServletException {
+    private Map<String, String> selectBookByIsbn(final String isbn) throws ServletException {
         String resource = "http://localhost:8080/Begining_EJB_GF4-war/rs/books/";
         
         Client httpClient = ClientBuilder.newClient();
         WebTarget webTarget = httpClient.target(resource).path(isbn);
         
+        logger.log(Level.INFO
+                ,"Request URI = {0}"
+                ,new String[] {
+                    webTarget.getUri().toASCIIString()
+                });
+        
         try {
-            String jsonBook = webTarget.request(MediaType.APPLICATION_JSON).get(String.class);
+            String jsonBook = webTarget.request(MediaType.APPLICATION_JSON)
+                    .get(String.class);
         
             logger.log(Level.INFO
                     ,"{0}"
                     ,new String[] {
                         jsonBook
                     });
+            
+            //JSON→Map変換
+            Map<String, String> bookMap = new HashMap<String, String>();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                bookMap = mapper.readValue(
+                        jsonBook, new TypeReference<HashMap<String, String>>(){});
+            } catch (Exception e) {
+                throw new ServletException(e);
+            }
+            
+            return bookMap;
         } catch (Exception e) {
             logger.log(Level.SEVERE
                     ,"{0}"
