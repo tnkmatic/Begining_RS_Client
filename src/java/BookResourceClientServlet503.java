@@ -6,7 +6,6 @@
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -17,8 +16,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
 
 /**
  *
@@ -29,29 +32,6 @@ public class BookResourceClientServlet503 extends HttpServlet {
     private static java.util.logging.Logger logger =
             java.util.logging.Logger.getLogger(
             BookResourceClientServlet503.class.getName());
-
-    /**
-     * Processes requests for both HTTP
-     * <code>GET</code> and
-     * <code>POST</code> methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        final String isbn = request.getParameter("isbn");
-        Map<String, String> bookMap = selectBookByIsbn(isbn);
-        
-        response.setContentType("text/html;charset=UTF-8");
-        
-        request.setAttribute("bookMap", bookMap);        
-        request.getRequestDispatcher("rest/bookResult503.jsp")
-                .forward(request, response);
-    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -66,7 +46,20 @@ public class BookResourceClientServlet503 extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        final String isbn = request.getParameter("isbn");
+        Map<String, String> bookMap = selectBookByIsbn(isbn);
+        
+        response.setContentType("text/html;charset=UTF-8");
+        
+        if (bookMap == null 
+                || bookMap.isEmpty()) {
+            request.setAttribute("resultEmpty", 0);
+        } else {
+            request.setAttribute("bookMap", bookMap);     
+        }
+        
+        request.getRequestDispatcher("rest/bookResult503.jsp")
+                .forward(request, response);
     }
 
     /**
@@ -81,7 +74,23 @@ public class BookResourceClientServlet503 extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        final String isbn  = request.getParameter("isbn");
+        final String title = request.getParameter("title");
+        
+        logger.log(Level.INFO
+                    ,"POSTボディ：isbn={0}, タイトル={1}"
+                    ,new String[] {
+                        isbn
+                        ,title
+                    });
+        
+        request.setAttribute("isbn",  isbn);
+        request.setAttribute("title", title);
+
+        Response res = createNewBookByForm(isbn, title);
+        
+        request.getRequestDispatcher("rest/createNewBookByFormResult503.jsp")
+                .forward(request, response);
     }
 
     /**
@@ -117,7 +126,7 @@ public class BookResourceClientServlet503 extends HttpServlet {
                     });
             
             //JSON→Map変換
-            Map<String, String> bookMap = new HashMap<String, String>();
+            Map<String, String> bookMap = new HashMap<>();
             ObjectMapper mapper = new ObjectMapper();
             try {
                 bookMap = mapper.readValue(
@@ -133,6 +142,49 @@ public class BookResourceClientServlet503 extends HttpServlet {
                     ,new String[] {
                         e.getMessage()
                     });
+            throw new ServletException(e);
+        }
+    }
+    
+    private Response createNewBookByForm(
+            final String isbn, final String title) throws ServletException {
+        String resource = "http://localhost:8080/Begining_EJB_GF4-war/rs/books/";
+        
+        Client httpClient = ClientBuilder.newClient();
+        WebTarget webTarget = httpClient.target(resource);
+        
+        logger.log(Level.INFO
+                ,"Request URI = {0}"
+                ,new String[] {
+                    webTarget.getUri().toASCIIString()
+                });
+        
+        try {
+            MultivaluedHashMap<String, String> map = new MultivaluedHashMap<>();
+            map.add("isbn", isbn);
+            map.add("title", title);
+
+            Form form = new Form(map);
+            
+            logger.log(Level.INFO
+                    ,"登録データ：isbn={0}, タイトル={1}"
+                    ,new String[] {
+                        isbn
+                        ,title
+                    });
+            
+            Response response =
+                    webTarget.request(
+                        MediaType.APPLICATION_FORM_URLENCODED + " ;charset=utf-8")
+                    .post(Entity.form(form));
+            
+            return response;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE
+                ,"{0}"
+                ,new String[] {
+                    e.getMessage()
+                });
             throw new ServletException(e);
         }
     }

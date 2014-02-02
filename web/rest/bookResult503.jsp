@@ -14,25 +14,32 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <table title="指定された本のリスト" rules="all">
+        <table title="指定された本のリスト" 
+               border="1" cellspacing="0" cellpadding="5"
+               bordercolor="#333333">
             <th>ISBN</th>
             <th>タイトル</th>
             <th>ページ数</th>
             <th>金額</th>
             <th>説明</th>
-     
+
+            <%-- 
             <c:forEach var="book" items="${requestScope.bookMap}">
             <tr>
                 <td>${book.key}</td>
                 <td>${book.value}</td>
             </tr>
             </c:forEach>
-            
+           --%>
+
+            <tr>
             <td>${requestScope.bookMap.isbn}</td>
             <td>${requestScope.bookMap.title}</td>
             <td>${requestScope.bookMap.nbOfPage}</td>
             <td>${requestScope.bookMap.price}</td>
             <td>${requestScope.bookMap.description}</td>
+            </tr>
+            
         </table>
     </body>
 </html>
