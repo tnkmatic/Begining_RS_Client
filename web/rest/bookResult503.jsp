@@ -41,5 +41,6 @@
             </tr>
             
         </table>
+        <a href="<%= request.getContextPath() %>/rest/index.jsp">メニューに戻る</a>
     </body>
 </html>

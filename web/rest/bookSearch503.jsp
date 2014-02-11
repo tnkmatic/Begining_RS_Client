@@ -19,6 +19,6 @@
             <input id="isbn" type="text" name="isbn" required="true" />
             <input type="submit" value="検索" />
         </form>
-
+        <a href="../rest/index.jsp">メニューに戻る</a>
     </body>
 </html>

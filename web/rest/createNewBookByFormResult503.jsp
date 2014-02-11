@@ -12,8 +12,8 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
-        <h2>登録完了しました</h2>
+        <h1>登録完了！</h1>
+        <h2>以下の本の登録完了しました</h2>
         <table border="1">
             <th>ISBN</th>
             <th>タイトル</th>            
@@ -26,5 +26,6 @@
         <a href="<%= request.getContextPath() %>/rest/crateNewBookByForm503.jsp">
             登録画面へ戻る
         </a>
+        <a href="<%= request.getContextPath() %>/rest/index.jsp">メニューに戻る</a>
     </body>
 </html>

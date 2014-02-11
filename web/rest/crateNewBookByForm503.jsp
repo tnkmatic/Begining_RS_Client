@@ -15,6 +15,7 @@
         <h1>本の登録</h1>
         <form id="formCreateNewBookByForm" method="post"
               action="<%= request.getContextPath() %>/BookResourceClient503">
+            <input type="hidden" name="_method" value="post" />
             <label for="isbn">ISBN</label>
             <input type="text" id="isbn" name="isbn" />
             <label for="title">タイトル</label>
@@ -22,6 +23,6 @@
             <br>
             <input type="submit" value="登録" />
         </form>
-        
+        <a href="../rest/index.jsp">メニューに戻る</a>
     </body>
 </html>
